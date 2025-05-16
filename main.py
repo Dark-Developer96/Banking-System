@@ -89,6 +89,7 @@ def change_pin(acc_no, pin):
             new_pin = input("Enter new pin")
             if new_pin.isdigit() and 3 < len(new_pin) < 5:
                 system[acc_no]["pin"] = new_pin
+                print("Pin changed succesfully")
                 saving(data, system)
             else:
                 print("Pin should contain only digits and should be 4 digits ")
@@ -102,6 +103,7 @@ def delete_account(acc_no, pin):
     if acc_no in system:
         if pin == system[acc_no]["pin"]:
             del system[acc_no]
+            print("Account deleted succesfully")
             saving(data, system)
         else:
             print("Invalid pin")
