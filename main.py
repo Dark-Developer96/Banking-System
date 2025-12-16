@@ -1,182 +1,238 @@
 import os
-import json
+import datetime
+import time
 import random
+import json
 
-
-def loading_data(x: str):
-    with open(x, "r") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return {}
-
-
-def saving(file, dictionary):
+file = "Accounts.json"
+accounts = {}
+if not os.path.exists(file):
     with open(file, "w") as f:
-        json.dump(dictionary, f, indent=4)
-
-
-system = {}
-data = "data.json"
-if not os.path.exists(data):
-    with open(data, "w") as f:
-        f.write("")
+        json.dump({}, f)
 else:
-    system = loading_data(data)
+    with open(file, "r") as f:
+        accounts = json.load(f)
 
 
-def account_no_generator():
-    x = "123456789012345"
-    acc = ""
-    for i in range(10):
-        acc += random.choice(x)
-    if acc in system:
-        return account_no_generator()
+def save():
+    with open(file, "w") as f:
+        json.dump(accounts, f, indent=4)
+
+
+# Generate id
+"""This is a simple recursive function that generates an id for the user and checks if the id exists in the system,if not then it returns the id and if the id is present in the system it regenerates the id"""
+
+
+def idGen():
+    id = ""
+    for _ in range(10):
+        id += str(random.randint(1, 9))
+    if id in accounts:
+        return idGen()
     else:
-        return acc
+        return id
 
 
-def open_account(name, acc_no, pin):
-    system[acc_no] = {"name": name, "balance": 0, "pin": pin}
-    saving(data, system)
+# encryption
+def encrypt(text):
+    ntext = ""
+    i = 1
+    for char in text:
+        ntext += chr(ord(char) + i)
+        i += 1
+    return ntext
 
 
-def show_balance(acc_no, pin):
-    if acc_no in system:
-        if pin == system[acc_no]["pin"]:
-            return (
-                f"{system[acc_no]["name"]} your balance is ₹{system[acc_no]["balance"]}"
-            )
+# decryption
+def decrypt(text):
+    ntext = ""
+    i = 1
+    for char in text:
+        ntext += chr(ord(char) - i)
+        i += 1
+    return ntext
+
+
+# A simple login function
+def login():
+    id = input("Enter ID:\n")
+    passw = input("Enter Password:\n")
+    if id in accounts:
+        if decrypt(accounts[id]["Password"]) == passw:
+            return id
         else:
-            return "incorrect pin"
+            print("Invalid password!")
     else:
-        return "Invalid Account Id"
+        print("Invalid Id!")
 
 
-def deposit(acc_no, pin, amount: int):
-    if acc_no in system:
-        if pin == system[acc_no]["pin"]:
-            system[acc_no]["balance"] += amount
-            print("deposit succesfull")
-            saving(data, system)
+# Create an account
+def openAcc(name, id, passw):
+    passw2 = input("Confirm password:\n")
+    while passw != passw2:
+        print("Invalid password!")
+        passw2 = input("Confirm password:\n")
+    accounts[id] = {
+        "Name": name,
+        "Balance": 0,
+        "Password": encrypt(passw),
+        "Transactions": [],
+    }
+    print("Account Details:")
+    print(f"Name : {name}")
+    print(f"ID : {id}")
+
+    save()
+
+
+def display():
+    print("Operation succesfull!")
+
+
+# deposit amounts
+def deposit(id):
+    try:
+        amt = int(input("Enter the amount to deposit:\n"))
+        while not 10000 >= amt >= 100:
+            print("Maximum deposit at a time is 10000 and minimum is 100")
+            try:
+                amt = int(input("Enter the amount to deposit:\n"))
+            except ValueError:
+                print("Please Enter a number")
+        accounts[id]["Balance"] += amt
+        accounts[id]["Transactions"].append(
+            {
+                "type": "Deposit",
+                "amount": amt,
+                "updated_balance": accounts[id]["Balance"],
+                "time": datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
+        save()
+        display()
+    except ValueError:
+        print("Please enter a number ")
+
+
+# withdraw amounts
+def withdraw(id):
+    try:
+        amt = int(input("Enter the amount to withdraw:\n"))
+        while amt > accounts[id]["Balance"]:
+            print("Insufficient funds!")
+            try:
+                amt = int(input("Enter the amount to withdraw:\n"))
+            except ValueError:
+                print("Please Enter a Number")
+
+        while not 10000 >= amt >= 100:
+            print("Maximum withdrawal is 10000 and minimum is 100")
+            try:
+                amt = int(input("Enter the amount to withdraw:\n"))
+            except ValueError:
+                print("Please enter a number")
+        accounts[id]["Balance"] -= amt
+        accounts[id]["Transactions"].append(
+            {
+                "type": "Withdrawal",
+                "amount": amt,
+                "updated_balance": accounts[id]["Balance"],
+                "time": datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
+        save()
+        display()
+    except ValueError:
+        print("Please enter a number")
+
+
+# check balance
+def checkBal(id):
+    print(f"Current Balance: {accounts[id]["Balance"]}")
+
+
+# change password
+def changePass(id, opass):
+    if opass == decrypt(accounts[id]["Password"]):
+        npass = input("Enter new Password:\n")
+        cpass = input("Confirm new Password:\n")
+        while npass != cpass:
+            print("Invalid password")
+            cpass = input("Confirm new Password:\n")
+        accounts[id]["Password"] = encrypt(npass)
+        save()
+        display()
+    else:
+        print("Wrong password!")
+
+
+# close account
+def closeAccount(id, passw):
+    if passw == decrypt(accounts[id]["Password"]):
+        ch = input("Confirm to delete this account?(y/n)")
+        if ch[0].lower() == "y":
+            del accounts[id]
+            save()
+            display()
         else:
-            print("Incorrect pin")
+            return
     else:
-        print("Invalid Account Id")
+        print("Passwords doesnt match")
 
 
-def withdraw(acc_no, pin, amount):
-    if acc_no in system:
-        if pin == system[acc_no]["pin"]:
-            if amount <= system[acc_no]["balance"]:
-                if amount >= 500:
-                    print("Withdrawal succesfull")
-                    system[acc_no]["balance"] -= amount
-                    saving(data, system)
-                else:
-                    print("Withdrawal amount should not be less than 500 Rupees")
-            else:
-                print("Insufficient Funds")
-        else:
-            print("Incorrect pin")
-    else:
-        print("Account Id not found")
-
-
-def change_pin(acc_no, pin):
-    if acc_no in system:
-        if pin == system[acc_no]["pin"]:
-            new_pin = input("Enter new pin")
-            if new_pin.isdigit() and 3 < len(new_pin) < 5:
-                system[acc_no]["pin"] = new_pin
-                print("Pin changed succesfully")
-                saving(data, system)
-            else:
-                print("Pin should contain only digits and should be 4 digits ")
-        else:
-            print("Incorrect pin")
-    else:
-        print("Account Id Not found")
-
-
-def delete_account(acc_no, pin):
-    if acc_no in system:
-        if pin == system[acc_no]["pin"]:
-            del system[acc_no]
-            print("Account deleted succesfully")
-            saving(data, system)
-        else:
-            print("Invalid pin")
-    else:
-        print("Account Id not found")
+# get transaction history
+def transactionHistory(id):
+    for transactions in accounts[id]["Transactions"]:
+        for key, value in transactions.items():
+            print(f"{key} : {value}", end=" | ")
+        print()
 
 
 def main():
     while True:
-        print("\n\nWelcome To Orbit Bank")
-        print("Enter 1 to open an account")
-        print("Enter 2 to show balance")
-        print("Enter 3 to deposit money in your account")
-        print("Enter 4 to withdraw money from your account")
-        print("Enter 5 to change pin")
-        print("Enter 6 to delete your account")
-        print("Enter 7 to exit")
         try:
-            x = int(input("Enter your choice"))
-        except ValueError:
-            print("Enter an integer")
-            continue
-        if x == 1:
-            name = input("Enter Your Full name")
-
-            acc_no = account_no_generator()
-            print(f"your account number is {acc_no}")
-            pin = input("Enter your pin")
-            if pin.isdigit() and len(pin) == 4:
-                open_account(name, acc_no, pin)
-                print("Account succesfully created")
+            ch = int(input("1.Login\n2.Create Account\n3.Exit:\n"))
+            if ch == 1:
+                x = login()
+                if x:
+                    while True:
+                        try:
+                            n = int(
+                                input(
+                                    "1.Deposit\n2.Withdraw\n3.Check Balance\n4.Transaction History\n5.Change Password\n6.Close Account\n7.Logout:\n"
+                                )
+                            )
+                            if n == 1:
+                                deposit(x)
+                            elif n == 2:
+                                withdraw(x)
+                            elif n == 3:
+                                checkBal(x)
+                            elif n == 4:
+                                transactionHistory(x)
+                            elif n == 5:
+                                passw = input("Enter your old password:\n")
+                                changePass(x, passw)
+                            elif n == 6:
+                                passw = input("Enter Password to close the account:\n")
+                                closeAccount(x, passw)
+                            elif n == 7:
+                                break
+                            else:
+                                print("Invalid choice!")
+                        except ValueError:
+                            print("Please Enter a number")
+            elif ch == 2:
+                name = input("Enter Your Name:\n")
+                identification = idGen()
+                passw = input("Enter Password for this account:\n")
+                openAcc(name, identification, passw)
+            elif ch == 3:
+                break
             else:
-                print("Pin should contain numbers only and must be 4 digit")
-
-        elif x == 2:
-            acc_no = input("Enter your account number")
-            pin = input("Enter your pin")
-            print(show_balance(acc_no, pin))
-        elif x == 3:
-            acc_no = input("Enter your account number")
-            pin = input("Enter your pin")
-            try:
-                amount = int(input("Enter the amount which you want to deposit"))
-                if amount >= 500:
-                    deposit(acc_no, pin, amount)
-                else:
-                    print("Deposit could not be less than 500 Rupees")
-            except ValueError:
-                print("Enter an integer")
-
-        elif x == 4:
-            acc_no = input("Enter your account number")
-            pin = input("Enter your pin")
-            try:
-                amount = int(input("Enter the amount which you want to withdraw"))
-                withdraw(acc_no, pin, amount)
-            except ValueError:
-                print("Amount should be an integer")
-
-        elif x == 5:
-            acc_no = input("Enter your account number")
-            pin = input("Enter your old  pin")
-            change_pin(acc_no, pin)
-        elif x == 6:
-            acc_no = input("Enter your account number")
-            pin = input("Enter your  pin")
-            delete_account(acc_no, pin)
-        elif x == 7:
-            print("Thank you for banking with us")
-            break
-        else:
-            print("Invalid choice")
+                print("Invalid Choice!")
+        except ValueError:
+            print("Please enter a number")
 
 
-if __name__ == "__main__":
-    main()
+main()
