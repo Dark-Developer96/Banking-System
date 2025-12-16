@@ -1,74 +1,49 @@
-🏦 Orbit Bank - Simple Banking System in Python
-Orbit Bank is a command-line based banking system built using Python. It simulates basic banking operations such as opening an account, checking balance, depositing, withdrawing money, changing PIN, and deleting accounts. All account data is stored securely in a local JSON file.
+🏦 Console-Based Banking System (Python)
 
-🚀 Features
-• 📁 Persistent account storage using data.json
+This project is a console-based banking management system built using Python, focusing on procedural programming, file handling, and core security concepts.
 
-• 🔐 PIN-protected operations
+The system allows users to create and manage bank accounts through a simple command-line interface, with all account data stored persistently using JSON files.
 
-• 💸 Deposit and withdrawal with minimum transaction limits
+✨ Key Features
 
-• 🔄 Change your PIN securely
+Create a new bank account with a unique auto-generated ID
 
-• ❌ Account deletion with verification
+Secure login system with custom password encryption & decryption
 
-• ✅ Auto-generated unique 10-digit account numbers
+Deposit and withdraw money with proper validation
 
-🛠️ Technologies Used
-• Python 3
+Real-time balance checking
 
-• JSON for data storage
+Detailed transaction history with timestamps
 
-• Standard libraries: os, json, random
+Change account password securely
 
-⚙️ How It Works
-• On first run, a data.json file is created to store account data.
+Close/delete an account with confirmation
 
-• Users can interact via numbered menu options.
+Persistent data storage using JSON
 
-• Each account is protected with a 4-digit numeric PIN.
+Input validation and error handling for a smooth user experience
 
-• Deposits and withdrawals require minimum amounts for security.
+🧠 Concepts Used
 
-• Changes are saved after every successful operation.
+Procedural programming in Python
 
-📋 Menu Options
-• Open an account
+File handling (read/write using JSON)
 
-• Show balance
+Custom encryption logic
 
-• Deposit money
+Functions and modular code structure
 
-• Withdraw money
+Recursion (for unique ID generation)
 
-• Change PIN
+Exception handling (try-except)
 
-• Delete account
+Basic decorators for enhanced user feedback
 
-• Exit
+Date & time handling for transaction logs
 
-🧪 Example Usage
-bash
-Copy
-Edit
-$ python orbit_bank.py
+🎯 Purpose
 
-Welcome To Orbit Bank
-Enter 1 to open an account
-Enter 2 to show balance
-...
-🔐 Account & PIN Rules
-• Account numbers are randomly generated (10 digits).
+This project was built to strengthen fundamental Python skills such as logic building, data persistence, and security awareness, while avoiding heavy frameworks or databases.
 
-• PIN must be 4 digits only and numeric.
-
-• Minimum deposit and withdrawal: ₹500
-
-📂 Files
-• main.py - Main Python script.
-
-•data.json - Stores all user account data in JSON format.
-
-📌 Note
-This project is for learning purposes and not suitable for real banking applications.
-
+It serves as a strong foundation for transitioning into more advanced topics like Object-Oriented Programming, databases, and backend development.
